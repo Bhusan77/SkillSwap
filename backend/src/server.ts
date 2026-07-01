@@ -1,13 +1,13 @@
-import express from "express";
+import dotenv from "dotenv";
+dotenv.config();
 
-const app = express();
+import connectDB from "./config/db";
+import app from "./app";
 
-app.get("/", (req, res) => {
-  res.send("SkillSwap Backend Running ");
-});
+connectDB();
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port 127.0.0.1${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
