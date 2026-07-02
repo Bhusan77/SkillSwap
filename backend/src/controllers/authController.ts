@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs";
 import generateToken from "../utils/generateToken";
 import User from "../models/User";
 
-
 // Register User
 export const registerUser = async (
   req: Request,
@@ -29,12 +28,16 @@ export const registerUser = async (
       password: hashedPassword,
     });
 
+    const userObj = user.toObject();
+    delete (userObj as any).password;
+
     res.status(201).json({
       message: "User registered successfully",
       token: generateToken(user._id.toString()),
-      user,
+      user: userObj,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       message: "Server Error",
     });
@@ -67,12 +70,16 @@ export const loginUser = async (
       return;
     }
 
+    const userObj = user.toObject();
+    delete (userObj as any).password;
+
     res.status(200).json({
       message: "Login Successful",
       token: generateToken(user._id.toString()),
-      user,
+      user: userObj,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       message: "Server Error",
     });
