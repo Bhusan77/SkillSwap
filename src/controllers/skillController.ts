@@ -1,6 +1,40 @@
 import { Response } from "express";
+import mongoose from "mongoose";
 import Skill from "../models/Skill";
 import { AuthRequest } from "../middleware/authMiddleware";
+
+// Helper to handle Mongoose errors consistently
+const handleError = (error: any, res: Response): void => {
+  console.error(error);
+
+  if (error.name === "ValidationError") {
+    const messages = Object.values(error.errors).map((e: any) => e.message);
+    res.status(400).json({
+      message: "Validation failed",
+      errors: messages,
+    });
+    return;
+  }
+
+  if (error.name === "CastError") {
+    res.status(400).json({
+      message: "Invalid ID format",
+    });
+    return;
+  }
+
+  res.status(500).json({
+    message: "Server Error",
+  });
+};
+
+// Helper to safely extract a single string ID from req.params
+// (req.params values can be typed as string | string[] depending on @types/express-serve-static-core version)
+const getIdParam = (param: string | string[] | undefined): string | null => {
+  if (!param) return null;
+  if (Array.isArray(param)) return param[0] ?? null;
+  return param;
+};
 
 // Create Skill
 export const createSkill = async (
@@ -23,11 +57,7 @@ export const createSkill = async (
       skill,
     });
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: "Server Error",
-    });
+    handleError(error, res);
   }
 };
 
@@ -44,11 +74,7 @@ export const getSkills = async (
 
     res.status(200).json(skills);
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: "Server Error",
-    });
+    handleError(error, res);
   }
 };
 
@@ -58,7 +84,14 @@ export const getSkillById = async (
   res: Response
 ): Promise<void> => {
   try {
-    const skill = await Skill.findById(req.params.id).populate(
+    const id = getIdParam(req.params.id);
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ message: "Invalid ID format" });
+      return;
+    }
+
+    const skill = await Skill.findById(id).populate(
       "owner",
       "name email profileImage"
     );
@@ -72,11 +105,7 @@ export const getSkillById = async (
 
     res.status(200).json(skill);
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: "Server Error",
-    });
+    handleError(error, res);
   }
 };
 
@@ -86,7 +115,14 @@ export const updateSkill = async (
   res: Response
 ): Promise<void> => {
   try {
-    const skill = await Skill.findById(req.params.id);
+    const id = getIdParam(req.params.id);
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ message: "Invalid ID format" });
+      return;
+    }
+
+    const skill = await Skill.findById(id);
 
     if (!skill) {
       res.status(404).json({
@@ -114,11 +150,7 @@ export const updateSkill = async (
       skill,
     });
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: "Server Error",
-    });
+    handleError(error, res);
   }
 };
 
@@ -128,7 +160,14 @@ export const deleteSkill = async (
   res: Response
 ): Promise<void> => {
   try {
-    const skill = await Skill.findById(req.params.id);
+    const id = getIdParam(req.params.id);
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ message: "Invalid ID format" });
+      return;
+    }
+
+    const skill = await Skill.findById(id);
 
     if (!skill) {
       res.status(404).json({
@@ -150,10 +189,6 @@ export const deleteSkill = async (
       message: "Skill deleted successfully",
     });
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: "Server Error",
-    });
+    handleError(error, res);
   }
 };
