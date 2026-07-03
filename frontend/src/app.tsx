@@ -1,0 +1,47 @@
+import { FC } from "react";
+import { Routes, Route } from "react-router-dom";
+import Landing from "./pages/Landing";
+import BrowseSkills from "./pages/BrowseSkills";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import AddSkill from "./pages/AddSkill";
+import EditSkill from "./pages/EditSkill";
+import MySkills from "./pages/MySkills";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+const App: FC = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/skills" element={<BrowseSkills />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route
+        path="/skills/add"
+        element={
+          <ProtectedRoute>
+            <AddSkill />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/skills/edit/:id"
+        element={
+          <ProtectedRoute>
+            <EditSkill />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-skills"
+        element={
+          <ProtectedRoute>
+            <MySkills />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  );
+};
+
+export default App;

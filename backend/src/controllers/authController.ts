@@ -9,7 +9,7 @@ export const registerUser = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, location } = req.body;
 
     const userExists = await User.findOne({ email });
 
@@ -26,6 +26,7 @@ export const registerUser = async (
       name,
       email,
       password: hashedPassword,
+      location: location || "",
     });
 
     const userObj = user.toObject();

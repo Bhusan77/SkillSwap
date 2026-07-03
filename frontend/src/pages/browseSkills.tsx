@@ -1,7 +1,7 @@
 import { getSkills } from "../services/skillService";
 import { useEffect, useState, type FC } from "react";
 import type { Skill } from "../types/Skill";
-import SkillCard from "../components/skillCard";
+import SkillCard from "../components/SkillCard";
 
 const BrowseSkills: FC = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
