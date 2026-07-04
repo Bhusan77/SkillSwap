@@ -100,7 +100,7 @@ const Landing: FC = () => {
     <div className="bg-bg text-ink font-body">
       {/* Header */}
       <header className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
-        <span className="font-display font-semibold text-xl text-ink">
+        <span className="font-display font-semibold text-3xl text-ink">
           SkillSwap
         </span>
         <nav className="hidden sm:flex items-center gap-8 text-sm font-medium text-ink/70">

@@ -29,3 +29,19 @@ export interface RegisterInput {
   password: string;
   location?: string;
 }
+
+// Payload for PUT /api/users/profile — all fields optional (partial update)
+export interface UpdateProfileInput {
+  name?: string;
+  bio?: string;
+  location?: string;
+  profileImage?: string;
+  skillsOffered?: string[];
+  skillsWanted?: string[];
+}
+
+// Response shape from PUT /api/users/profile
+export interface UpdateProfileResponse {
+  message: string;
+  user: User;
+}

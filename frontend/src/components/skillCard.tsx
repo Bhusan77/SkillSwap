@@ -1,7 +1,7 @@
-import type { FC } from "react";
+import { FC } from "react";
 import { Link } from "react-router-dom";
-import type { Skill } from "../types/Skill";
-
+import { useAuth } from "../context/AuthContext";
+import { Skill } from "../types/Skill";
 
 interface SkillCardProps {
   skill: Skill;
@@ -14,6 +14,9 @@ const levelColors: Record<Skill["level"], string> = {
 };
 
 const SkillCard: FC<SkillCardProps> = ({ skill }) => {
+  const { user } = useAuth();
+  const isOwnSkill = user?._id === skill.owner._id;
+
   return (
     <div className="border rounded-lg shadow-sm p-4 flex flex-col gap-3 bg-white hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
@@ -44,14 +47,20 @@ const SkillCard: FC<SkillCardProps> = ({ skill }) => {
           </div>
         )}
         <span className="text-sm text-gray-700">{skill.owner.name}</span>
+        {isOwnSkill && (
+          <span className="text-xs text-gray-400 ml-auto">(You)</span>
+        )}
       </div>
 
-      <Link
-        to={`/skills/${skill._id}`}
-        className="mt-2 text-center text-sm font-medium text-blue-600 hover:text-blue-800"
-      >
-        View Details
-      </Link>
+      {!isOwnSkill && (
+        <Link
+          to={`/messages/${skill.owner._id}`}
+          state={{ name: skill.owner.name, profileImage: skill.owner.profileImage }}
+          className="mt-2 text-center text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-600 rounded-md py-1.5 hover:bg-blue-50 transition-colors"
+        >
+          Message {skill.owner.name.split(" ")[0]}
+        </Link>
+      )}
     </div>
   );
 };
