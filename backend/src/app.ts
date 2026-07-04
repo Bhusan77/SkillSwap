@@ -4,6 +4,7 @@ import cors from "cors";
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import skillRoutes from "./routes/skillRoutes";
+import messageRoutes from "./routes/messageRoutes";
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/skills", skillRoutes);
+app.use("/api/messages", messageRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

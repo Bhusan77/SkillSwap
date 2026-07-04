@@ -7,6 +7,10 @@ import Register from "./pages/Register";
 import AddSkill from "./pages/AddSkill";
 import EditSkill from "./pages/EditSkill";
 import MySkills from "./pages/MySkills";
+import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
+import Help from "./pages/Help";
+import Messages from "./pages/Messages";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App: FC = () => {
@@ -16,6 +20,46 @@ const App: FC = () => {
       <Route path="/skills" element={<BrowseSkills />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/help"
+        element={
+          <ProtectedRoute>
+            <Help />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/messages"
+        element={
+          <ProtectedRoute>
+            <Messages />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/messages/:userId"
+        element={
+          <ProtectedRoute>
+            <Messages />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/skills/add"
         element={

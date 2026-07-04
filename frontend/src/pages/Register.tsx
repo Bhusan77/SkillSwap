@@ -1,7 +1,8 @@
 import { FC, useState, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { register } from "../services/authService";
-import { useAuth } from "../context/AuthContext";
+import { NEPAL_CITIES } from "../constants/locations";
+
 
 const EyeIcon: FC<{ visible: boolean }> = ({ visible }) =>
   visible ? (
@@ -16,15 +17,45 @@ const EyeIcon: FC<{ visible: boolean }> = ({ visible }) =>
     </svg>
   );
 
+const GoogleIcon: FC = () => (
+  <svg width="18" height="18" viewBox="0 0 48 48">
+    <path
+      fill="#FFC107"
+      d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
+    />
+    <path
+      fill="#FF3D00"
+      d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"
+    />
+    <path
+      fill="#4CAF50"
+      d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
+    />
+    <path
+      fill="#1976D2"
+      d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
+    />
+  </svg>
+);
+
+const FacebookIcon: FC = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24">
+    <path
+      fill="#1877F2"
+      d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+    />
+  </svg>
+);
+
 const Register: FC = () => {
   const navigate = useNavigate();
-  const { loginUser } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [location, setLocation] = useState("");
+  const [locationChoice, setLocationChoice] = useState("");
+  const [customLocation, setCustomLocation] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +65,7 @@ const Register: FC = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+    setNotice(null);
 
     if (password.length < 8) {
       setError("Password must be at least 8 characters long.");
@@ -47,15 +79,19 @@ const Register: FC = () => {
 
     setLoading(true);
 
+    const finalLocation =
+      locationChoice === "Other" ? customLocation.trim() : locationChoice;
+
     try {
-      const data = await register({ name, email, password, location });
-      loginUser(data.token, data.user);
-      navigate("/skills");
+      await register({ name, email, password, location: finalLocation });
+      setNotice("User created successfully! Redirecting to login...");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
     } catch (err: any) {
       const message =
         err?.response?.data?.message || "Registration failed. Please try again.";
       setError(message);
-    } finally {
       setLoading(false);
     }
   };
@@ -74,10 +110,10 @@ const Register: FC = () => {
         <div className="relative z-10">
           <Link to="/" className="flex items-center gap-2 mb-16 w-fit">
             <span className="text-2xl">🎓</span>
-            <span className="font-display font-semibold text-xl">SkillSwap</span>
+            <span className="font-display font-semibold text-4xl">SkillSwap</span>
           </Link>
 
-          <h1 className="font-display font-semibold text-4xl leading-tight mb-6">
+          <h1 className="font-display font-semibold text-3xl leading-tight mb-6">
             Exchange Skills,
             <br />
             Empower Futures.
@@ -105,11 +141,14 @@ const Register: FC = () => {
       {/* Right panel — form */}
       <div className="flex-1 flex items-center justify-center bg-bg px-6 py-12">
         <div className="w-full max-w-md">
-          <p className="text-ink/80 mb-6">
-            Sign up to your SkillSwap account to continue learning...
-          </p>
-
           <div className="bg-white rounded-2xl shadow-sm border border-ink/10 p-8">
+            <h2 className="font-display font-semibold text-2xl text-ink mb-1">
+              Create Your Account
+            </h2>
+            <p className="text-sm text-muted mb-6">
+              Sign up to your SkillSwap account to continue learning.
+            </p>
+
             {notice && (
               <div className="mb-4 text-sm text-primary bg-primary-soft rounded-md px-3 py-2">
                 {notice}
@@ -125,16 +164,16 @@ const Register: FC = () => {
               <button
                 type="button"
                 onClick={() => handleSocialClick("Google")}
-                className="flex items-center justify-center gap-2 border border-ink/15 rounded-lg py-2.5 text-sm font-medium hover:bg-ink/5 transition-colors"
+                className="flex items-center justify-center gap-3 border border-ink/15 rounded-lg py-2.5 text-sm font-medium hover:bg-ink/5 transition-colors"
               >
-                <span className="text-base">G</span> Continue with Google
+                <GoogleIcon /> Continue with Google
               </button>
               <button
                 type="button"
                 onClick={() => handleSocialClick("Facebook")}
-                className="flex items-center justify-center gap-2 bg-[#1877F2] text-white rounded-lg py-2.5 text-sm font-medium hover:opacity-90 transition-opacity"
+                className="flex items-center justify-center gap-3 border border-ink/15 rounded-lg py-2.5 text-sm font-medium hover:bg-ink/5 transition-colors"
               >
-                Continue with Facebook
+                <FacebookIcon /> Continue with Facebook
               </button>
             </div>
 
@@ -227,13 +266,29 @@ const Register: FC = () => {
                 <label className="block text-sm font-medium text-ink mb-1">
                   Location
                 </label>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                <select
+                  value={locationChoice}
+                  onChange={(e) => setLocationChoice(e.target.value)}
                   className="w-full bg-ink/[0.03] border border-transparent rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
-                  placeholder="Enter your location"
-                />
+                >
+                  <option value="">Select your city</option>
+                  {NEPAL_CITIES.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                  <option value="Other">Other</option>
+                </select>
+
+                {locationChoice === "Other" && (
+                  <input
+                    type="text"
+                    value={customLocation}
+                    onChange={(e) => setCustomLocation(e.target.value)}
+                    placeholder="Enter your location"
+                    className="w-full mt-2 bg-ink/[0.03] border border-transparent rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
+                  />
+                )}
               </div>
 
               <button
