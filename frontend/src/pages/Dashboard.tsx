@@ -2,8 +2,11 @@ import { FC, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getSkills } from "../services/skillService";
+import { getConversations } from "../services/messageService";
 import Sidebar from "../components/Sidebar";
 import { Skill } from "../types/Skill";
+import { resolveImageUrl } from "../utils/imageUrl";
+import { ConversationSummary } from "../types/Message";
 
 const categoryColors: Record<string, string> = {
   "Web Development": "#2563EB",
@@ -19,11 +22,16 @@ const categoryColors: Record<string, string> = {
 const getCategoryColor = (category: string): string =>
   categoryColors[category] || "#6D5DFC";
 
+const formatTime = (iso: string) =>
+  new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
 const Dashboard: FC = () => {
   const { user } = useAuth();
   const [mySkills, setMySkills] = useState<Skill[]>([]);
   const [suggested, setSuggested] = useState<Skill[]>([]);
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chatsLoading, setChatsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,7 +51,21 @@ const Dashboard: FC = () => {
     fetchData();
   }, [user]);
 
-  // Real profile completion — based on fields actually filled in
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const data = await getConversations();
+        setConversations(data.slice(0, 5));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setChatsLoading(false);
+      }
+    };
+
+    fetchConversations();
+  }, []);
+
   const completionFields = [
     !!user?.bio,
     !!user?.location,
@@ -95,15 +117,19 @@ const Dashboard: FC = () => {
                 </Link>
               </div>
 
-             <div className="bg-white rounded-2xl border border-ink/10 p-6">
+              <div className="bg-white rounded-2xl border border-ink/10 p-6">
                 <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center mb-4">
                   💬
                 </div>
                 <h3 className="font-display font-semibold text-lg mb-1">
-                  Messages
+                  {conversations.length > 0
+                    ? `${conversations.length} Conversation${conversations.length === 1 ? "" : "s"}`
+                    : "Messages"}
                 </h3>
                 <p className="text-sm text-muted mb-3">
-                  Chat isn't built yet — coming in a later phase
+                  {conversations.length > 0
+                    ? "Chat with people you've connected with"
+                    : "Message someone from a skill listing to start chatting"}
                 </p>
                 <Link
                   to="/messages"
@@ -212,19 +238,76 @@ const Dashboard: FC = () => {
             </div>
           </div>
 
-          {/* Right column — Recent Chats (placeholder) */}
+          {/* Right column — Recent Chats */}
           <div className="bg-white rounded-2xl border border-ink/10 p-6 h-fit">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display font-semibold text-lg">
                 Recent Chats
               </h3>
+              {conversations.length > 0 && (
+                <Link
+                  to="/messages"
+                  className="text-xs text-primary font-medium hover:underline"
+                >
+                  View All
+                </Link>
+              )}
             </div>
-            <div className="text-center py-10">
-              <p className="text-sm text-muted mb-1">No chats yet</p>
-              <p className="text-xs text-muted/70">
-                Messaging is coming in a later phase
+
+            {chatsLoading ? (
+              <p className="text-sm text-muted text-center py-10">
+                Loading chats...
               </p>
-            </div>
+            ) : conversations.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-sm text-muted mb-1">No chats yet</p>
+                <p className="text-xs text-muted/70">
+                  Message someone from a skill listing to get started
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                {conversations.map((c) => (
+                  <Link
+                    key={c.user._id}
+                    to={`/messages/${c.user._id}`}
+                    state={{ name: c.user.name, profileImage: c.user.profileImage }}
+                    className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-ink/5 transition-colors"
+                  >
+                    {c.user.profileImage ? (
+                      <img
+                        src={resolveImageUrl(c.user.profileImage)}
+                        alt={c.user.name}
+                        className="w-9 h-9 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-primary-soft text-primary flex items-center justify-center text-sm font-semibold">
+                        {c.user.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-ink truncate">
+                          {c.user.name}
+                        </span>
+                        <span className="text-[10px] text-muted whitespace-nowrap ml-2">
+                          {formatTime(c.lastMessage.createdAt)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted truncate">
+                        {c.lastMessage.senderIsMe ? "You: " : ""}
+                        {c.lastMessage.content}
+                      </p>
+                    </div>
+                    {c.unreadCount > 0 && (
+                      <span className="bg-primary text-white text-[10px] font-semibold w-4 h-4 rounded-full flex items-center justify-center shrink-0">
+                        {c.unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>

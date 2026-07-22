@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { resolveImageUrl } from "../utils/imageUrl";
 import { Skill } from "../types/Skill";
 
 interface SkillCardProps {
@@ -37,7 +38,7 @@ const SkillCard: FC<SkillCardProps> = ({ skill }) => {
       <div className="flex items-center gap-2 pt-2 border-t">
         {skill.owner.profileImage ? (
           <img
-            src={skill.owner.profileImage}
+            src={resolveImageUrl(skill.owner.profileImage)}
             alt={skill.owner.name}
             className="w-8 h-8 rounded-full object-cover"
           />
