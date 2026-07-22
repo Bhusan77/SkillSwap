@@ -7,6 +7,7 @@ import {
   getConversation,
   sendMessage,
 } from "../services/messageService";
+import { resolveImageUrl } from "../utils/imageUrl";
 import { ConversationSummary, Message } from "../types/Message";
 
 const IconSearch: FC = () => (
@@ -50,7 +51,6 @@ const Messages: FC = () => {
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Fetch conversation list, and poll it every 5s so unread counts / new chats stay fresh
   useEffect(() => {
     const fetchConversations = async () => {
       try {
@@ -68,7 +68,6 @@ const Messages: FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch active thread, and poll it every 3s while a conversation is open
   useEffect(() => {
     if (!userId) {
       setMessages([]);
@@ -111,7 +110,6 @@ const Messages: FC = () => {
       const res = await sendMessage({ receiverId: userId, content: draft.trim() });
       setMessages((prev) => [...prev, res.data]);
       setDraft("");
-      // Refresh conversation list so the new/updated chat shows up immediately
       const updated = await getConversations();
       setConversations(updated);
     } catch (err) {
@@ -121,8 +119,6 @@ const Messages: FC = () => {
     }
   };
 
-  // Figure out the active chat partner's name/photo — from nav state (new chat),
-  // conversation list (existing chat), or the loaded messages themselves.
   const activeFromList = conversations.find((c) => c.user._id === userId);
   const activeFromMessages = messages[0]
     ? messages[0].sender._id === userId
@@ -192,7 +188,7 @@ const Messages: FC = () => {
               >
                 {c.user.profileImage ? (
                   <img
-                    src={c.user.profileImage}
+                    src={resolveImageUrl(c.user.profileImage)}
                     alt={c.user.name}
                     className="w-10 h-10 rounded-full object-cover"
                   />
@@ -252,7 +248,7 @@ const Messages: FC = () => {
           <div className="flex items-center gap-3 px-6 py-4 border-b border-ink/10 bg-white">
             {activeImage ? (
               <img
-                src={activeImage}
+                src={resolveImageUrl(activeImage)}
                 alt={activeName}
                 className="w-10 h-10 rounded-full object-cover"
               />

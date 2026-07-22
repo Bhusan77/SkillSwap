@@ -7,6 +7,7 @@ import {
 } from "../controllers/messageController";
 
 const router = express.Router();
+console.log("messageRoutes.ts file loaded, router created");
 
 router.get("/", protect, getConversations);
 

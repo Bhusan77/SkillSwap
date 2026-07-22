@@ -97,3 +97,42 @@ export const updateProfile = async (
     });
   }
 };
+// =======================================
+// Upload Profile Image
+// =======================================
+export const uploadProfileImageHandler = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const file = (req as any).file;
+
+    if (!file) {
+      res.status(400).json({ message: "No image file provided" });
+      return;
+    }
+
+    const imageUrl = `/uploads/profile-images/${file.filename}`;
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    user.profileImage = imageUrl;
+    await user.save();
+
+    res.status(200).json({
+      message: "Profile image uploaded successfully",
+      imageUrl,
+    });
+  } catch (error) {
+    console.error("========== UPLOAD PROFILE IMAGE ERROR ==========");
+    console.error(error);
+    res.status(500).json({
+      message: "Server Error",
+      error: error instanceof Error ? error.message : "Unknown Error",
+    });
+  }
+};

@@ -1,9 +1,10 @@
-import { FC, useState, useEffect, FormEvent, KeyboardEvent } from "react";
+import { FC, useState, useEffect, FormEvent, KeyboardEvent, ChangeEvent } from "react";
 import { useAuth } from "../context/AuthContext";
-import { getCurrentUser, updateProfile } from "../services/userService";
+import { getCurrentUser, updateProfile, uploadProfileImage } from "../services/userService";
 import Sidebar from "../components/Sidebar";
 import { NEPAL_CITIES } from "../constants/locations";
 
+const API_ORIGIN = (import.meta.env.VITE_API_URL as string).replace(/\/api$/, "");
 
 const Settings: FC = () => {
   const { loginUser } = useAuth();
@@ -20,6 +21,8 @@ const Settings: FC = () => {
 
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -82,6 +85,31 @@ const Settings: FC = () => {
       addTag(value, list, setList, clearInput);
     }
   };
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadError(null);
+    setUploading(true);
+
+    try {
+      const res = await uploadProfileImage(file);
+      setProfileImage(res.imageUrl);
+    } catch (err: any) {
+      setUploadError(
+        err?.response?.data?.message || "Failed to upload image. Please try again."
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const displayImageUrl = profileImage
+    ? profileImage.startsWith("http")
+      ? profileImage
+      : `${API_ORIGIN}${profileImage}`
+    : "";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -158,9 +186,9 @@ const Settings: FC = () => {
           className="bg-white rounded-2xl border border-ink/10 p-6 flex flex-col gap-5"
         >
           <div className="flex items-center gap-4">
-            {profileImage ? (
+            {displayImageUrl ? (
               <img
-                src={profileImage}
+                src={displayImageUrl}
                 alt={name}
                 className="w-16 h-16 rounded-full object-cover"
               />
@@ -171,15 +199,21 @@ const Settings: FC = () => {
             )}
             <div className="flex-1">
               <label className="block text-sm font-medium text-ink mb-1">
-                Profile Image URL
+                Profile Image
               </label>
-              <input
-                type="text"
-                value={profileImage}
-                onChange={(e) => setProfileImage(e.target.value)}
-                placeholder="https://example.com/your-photo.jpg"
-                className="w-full bg-ink/[0.03] border border-transparent rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
-              />
+              <label className="inline-block text-sm font-medium text-primary border border-primary rounded-lg px-4 py-2 cursor-pointer hover:bg-primary-soft transition-colors">
+                {uploading ? "Uploading..." : "Choose File"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleFileChange}
+                  disabled={uploading}
+                  className="hidden"
+                />
+              </label>
+              {uploadError && (
+                <p className="text-xs text-red-600 mt-1">{uploadError}</p>
+              )}
             </div>
           </div>
 

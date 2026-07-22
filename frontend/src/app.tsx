@@ -1,7 +1,6 @@
 import { FC } from "react";
 import { Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
-import BrowseSkills from "./pages/BrowseSkills";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AddSkill from "./pages/AddSkill";
@@ -11,7 +10,11 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
 import Messages from "./pages/Messages";
+import MySessions from "./pages/MySessions";
+import BookSession from "./pages/BookSession";
+import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
+import BrowseSkills from "./pages/browseSkills";
 
 const App: FC = () => {
   return (
@@ -81,6 +84,30 @@ const App: FC = () => {
         element={
           <ProtectedRoute>
             <MySkills />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-sessions"
+        element={
+          <ProtectedRoute>
+            <MySessions />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/book-session/:skillId"
+        element={
+          <ProtectedRoute>
+            <BookSession />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         }
       />

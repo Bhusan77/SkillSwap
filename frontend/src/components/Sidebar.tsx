@@ -1,6 +1,7 @@
-import { FC, useState } from "react";
+import { FC, JSX, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { resolveImageUrl } from "../utils/imageUrl";
 
 const IconGrid: FC = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -50,12 +51,19 @@ const IconHelp: FC = () => (
   </svg>
 );
 
-const navItems = [
+interface NavItem {
+  to: string;
+  label: string;
+  icon: JSX.Element;
+  comingSoon?: boolean;
+}
+
+const navItems: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: <IconGrid /> },
   { to: "/skills", label: "Explore", icon: <IconSearch /> },
   { to: "/messages", label: "Messages", icon: <IconMail /> },
-  { to: "/my-sessions", label: "My Sessions", icon: <IconCalendar />, comingSoon: true },
-  { to: "/profile", label: "Profile", icon: <IconUser />, comingSoon: true },
+  { to: "/my-sessions", label: "My Sessions", icon: <IconCalendar /> },
+  { to: "/profile", label: "Profile", icon: <IconUser /> },
 ];
 
 const Sidebar: FC = () => {
@@ -84,7 +92,7 @@ const Sidebar: FC = () => {
         <div className="flex items-center gap-3 px-2 mb-8">
           {user?.profileImage ? (
             <img
-              src={user.profileImage}
+              src={resolveImageUrl(user.profileImage)}
               alt={user.name}
               className="w-10 h-10 rounded-full object-cover"
             />
