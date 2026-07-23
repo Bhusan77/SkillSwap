@@ -7,8 +7,8 @@ import {
   getConversation,
   sendMessage,
 } from "../services/messageService";
+import { ConversationSummary, Message } from "../types/message";
 import { resolveImageUrl } from "../utils/imageUrl";
-import { ConversationSummary, Message } from "../types/Message";
 
 const IconSearch: FC = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -25,6 +25,17 @@ const IconMailLarge: FC = () => (
   <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
     <rect x="2" y="4" width="20" height="16" rx="2" />
     <path d="m2 6 10 7 10-7" />
+  </svg>
+);
+const IconPhone: FC = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+  </svg>
+);
+const IconVideoCall: FC = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="2" y="6" width="14" height="12" rx="2" />
+    <path d="m16 10 6-4v12l-6-4" />
   </svg>
 );
 
@@ -245,19 +256,40 @@ const Messages: FC = () => {
       ) : (
         <div className="flex-1 flex flex-col bg-bg">
           {/* Header */}
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-ink/10 bg-white">
-            {activeImage ? (
-              <img
-                src={resolveImageUrl(activeImage)}
-                alt={activeName}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-primary-soft text-primary flex items-center justify-center font-semibold text-sm">
-                {activeName.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <span className="font-semibold text-ink">{activeName}</span>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-ink/10 bg-white">
+            <div className="flex items-center gap-3">
+              {activeImage ? (
+                <img
+                  src={resolveImageUrl(activeImage)}
+                  alt={activeName}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-primary-soft text-primary flex items-center justify-center font-semibold text-sm">
+                  {activeName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="font-semibold text-ink">{activeName}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Link
+                to={`/call/${userId}?mode=audio`}
+                state={{ name: activeName, profileImage: activeImage }}
+                className="w-9 h-9 rounded-full border border-ink/10 flex items-center justify-center text-ink/70 hover:bg-primary-soft hover:text-primary transition-colors"
+                title="Audio call"
+              >
+                <IconPhone />
+              </Link>
+              <Link
+                to={`/call/${userId}?mode=video`}
+                state={{ name: activeName, profileImage: activeImage }}
+                className="w-9 h-9 rounded-full border border-ink/10 flex items-center justify-center text-ink/70 hover:bg-primary-soft hover:text-primary transition-colors"
+                title="Video call"
+              >
+                <IconVideoCall />
+              </Link>
+            </div>
           </div>
 
           {/* Messages */}
@@ -273,6 +305,46 @@ const Messages: FC = () => {
             ) : (
               messages.map((msg) => {
                 const isMine = msg.sender._id === currentUser?._id;
+
+                if (msg.type === "call") {
+                  const mins = Math.floor((msg.callDurationSeconds || 0) / 60);
+                  const secs = (msg.callDurationSeconds || 0) % 60;
+                  const durationLabel =
+                    msg.callDurationSeconds && msg.callDurationSeconds > 0
+                      ? `${mins}:${secs.toString().padStart(2, "0")}`
+                      : "No answer";
+
+                  return (
+                    <div
+                      key={msg._id}
+                      className={`flex items-center gap-2 max-w-xs px-4 py-3 rounded-2xl text-sm border ${
+                        isMine
+                          ? "self-end bg-primary-soft border-primary/20 text-primary"
+                          : "self-start bg-white border-ink/10 text-ink/70"
+                      }`}
+                    >
+                      {msg.callType === "video" ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="2" y="6" width="14" height="12" rx="2" />
+                          <path d="m16 10 6-4v12l-6-4" />
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                        </svg>
+                      )}
+                      <div>
+                        <p className="font-medium">
+                          {msg.callType === "video" ? "Video call" : "Audio call"}
+                        </p>
+                        <p className="text-xs opacity-70">
+                          {durationLabel} · {formatTime(msg.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={msg._id}
