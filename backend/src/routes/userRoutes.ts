@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Router } from "express";
 import {
   getCurrentUser,
   updateProfile,
@@ -14,4 +14,4 @@ router.get("/me", protect, getCurrentUser);
 router.put("/profile", protect, updateProfile);
 router.post("/upload-profile-image", protect, uploadProfileImage.single("image"), uploadProfileImageHandler);
 
-export default router;
+export default Router;
