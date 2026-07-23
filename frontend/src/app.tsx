@@ -12,6 +12,7 @@ import Help from "./pages/Help";
 import Messages from "./pages/Messages";
 import MySessions from "./pages/MySessions";
 import BookSession from "./pages/BookSession";
+import VideoCall from "./pages/VideoCall";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BrowseSkills from "./pages/browseSkills";
@@ -100,6 +101,14 @@ const App: FC = () => {
         element={
           <ProtectedRoute>
             <BookSession />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/session-call/:sessionId"
+        element={
+          <ProtectedRoute>
+            <VideoCall />
           </ProtectedRoute>
         }
       />
