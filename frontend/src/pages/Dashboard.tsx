@@ -6,7 +6,8 @@ import { getConversations } from "../services/messageService";
 import Sidebar from "../components/Sidebar";
 import { Skill } from "../types/Skill";
 import { resolveImageUrl } from "../utils/imageUrl";
-import { ConversationSummary } from "../types/Message";
+import { ConversationSummary } from "../types/message";
+
 
 const categoryColors: Record<string, string> = {
   "Web Development": "#2563EB",

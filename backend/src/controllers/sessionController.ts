@@ -118,6 +118,7 @@ export const cancelSession = async (
     }
 
     session.status = "cancelled";
+    session.resolvedAt = new Date();
     await session.save();
 
     const populated = await session.populate(POPULATE_FIELDS);
@@ -157,6 +158,7 @@ export const completeSession = async (
     }
 
     session.status = "completed";
+    session.resolvedAt = new Date();
     await session.save();
 
     const populated = await session.populate(POPULATE_FIELDS);

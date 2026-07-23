@@ -58,20 +58,66 @@ export const sendMessage = async (
   }
 };
 
+export const logCall = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  console.log(" HIT logCall handler, body:", req.body);
+  try {
+    const { receiverId, callType, durationSeconds } = req.body;
+
+    if (!receiverId || !callType) {
+      res.status(400).json({ message: "receiverId and callType are required" });
+      return;
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(receiverId)) {
+      res.status(400).json({ message: "Invalid receiver ID" });
+      return;
+    }
+
+    if (callType !== "video" && callType !== "audio") {
+      res.status(400).json({ message: "callType must be 'video' or 'audio'" });
+      return;
+    }
+
+    const duration =
+      typeof durationSeconds === "number" && durationSeconds >= 0
+        ? Math.round(durationSeconds)
+        : 0;
+
+    const message = await Message.create({
+      sender: req.userId,
+      receiver: receiverId,
+      content: callType === "video" ? "Video call" : "Audio call",
+      type: "call",
+      callType,
+      callDurationSeconds: duration,
+    });
+
+    const populated = await message.populate("sender receiver", "name profileImage");
+
+    res.status(201).json({
+      message: "Call logged",
+      data: populated,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 // Get full message thread with one specific user
 export const getConversation = async (
   req: AuthRequest,
   res: Response
 ): Promise<void> => {
   try {
-    console.log("GET CONVERSATION");
-    console.log(req.params);
+    const userId = getIdParam(req.params.userId);
 
-    const { userId } = req.params;
-
-    if (!userId) {
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       res.status(400).json({
-        message: "User ID missing",
+        message: "Invalid user ID",
       });
       return;
     }
@@ -105,7 +151,7 @@ export const getConversation = async (
 
     res.status(200).json(messages);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({
       message: "Server Error",
     });

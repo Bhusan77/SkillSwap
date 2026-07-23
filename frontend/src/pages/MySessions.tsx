@@ -35,15 +35,11 @@ const relativeLabel = (iso: string) => {
   return `In ${diffDays} days`;
 };
 
-const startOfWeek = () => {
+// "This week" = the next 7 days starting right now, not the Sun-Sat calendar week —
+// so a session booked for this coming Sunday still counts as "this week".
+const now = () => new Date();
+const sevenDaysFromNow = () => {
   const d = new Date();
-  const day = d.getDay();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - day);
-  return d;
-};
-const endOfWeek = () => {
-  const d = startOfWeek();
   d.setDate(d.getDate() + 7);
   return d;
 };
@@ -61,6 +57,14 @@ const MySessions: FC = () => {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
   const [actingId, setActingId] = useState<string | null>(null);
+
+  // Live clock — genuinely ticks every second using the real system time,
+  // so you can visually confirm session times against the actual current moment.
+  const [currentTime, setCurrentTime] = useState(new Date());
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchSessions = async () => {
     try {
@@ -81,16 +85,13 @@ const MySessions: FC = () => {
     .filter((s) => s.status === "upcoming")
     .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
   const past = sessions.filter((s) => s.status !== "upcoming");
-  const visible = tab === "upcoming" ? upcoming : past;
 
   const nextUp = upcoming[0];
   const restUpcoming = upcoming.slice(1);
 
-  const weekStart = startOfWeek();
-  const weekEnd = endOfWeek();
   const sessionsThisWeek = upcoming.filter((s) => {
     const d = new Date(s.scheduledAt);
-    return d >= weekStart && d < weekEnd;
+    return d >= now() && d < sevenDaysFromNow();
   }).length;
 
   const handleCancel = async (id: string) => {
@@ -148,6 +149,14 @@ const MySessions: FC = () => {
             </h1>
             <p className="text-muted">
               Manage your upcoming learning and teaching exchanges.
+            </p>
+            <p className="text-xs text-primary font-medium mt-2">
+              Right now: {currentTime.toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}{" "}
+              · {currentTime.toLocaleTimeString()}
             </p>
           </div>
           <div className="flex gap-3">
@@ -249,35 +258,48 @@ const MySessions: FC = () => {
                             {otherPersonOf(nextUp).name.charAt(0).toUpperCase()}
                           </div>
                         )}
-                        <span>
-                          {isTeacherOf(nextUp) ? otherPersonOf(nextUp).name : otherPersonOf(nextUp).name}
-                        </span>
+                        <span>{otherPersonOf(nextUp).name}</span>
                       </div>
                       <span>
                         {formatDate(nextUp.scheduledAt)} · {formatTime(nextUp.scheduledAt)}
                       </span>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mb-2">
+                      <Link
+                        to={`/session-call/${nextUp._id}`}
+                        className="flex-1 flex items-center justify-center gap-2 bg-primary text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-primary-dark transition-colors"
+                      >
+                        <IconVideo /> Join Video Call
+                      </Link>
                       <Link
                         to={`/messages/${otherPersonOf(nextUp)._id}`}
                         state={{
                           name: otherPersonOf(nextUp).name,
                           profileImage: otherPersonOf(nextUp).profileImage,
                         }}
-                        className="flex-1 flex items-center justify-center gap-2 bg-primary text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-primary-dark transition-colors"
-                      >
-                        <IconVideo /> Message to Coordinate
-                      </Link>
-                      <button
-                        onClick={() =>
-                          document
-                            .getElementById(`session-${nextUp._id}`)
-                            ?.scrollIntoView({ behavior: "smooth" })
-                        }
                         className="border border-ink/15 text-ink text-sm font-medium px-4 rounded-lg hover:bg-ink/5 transition-colors"
                       >
-                        •••
+                        Message
+                      </Link>
+                    </div>
+
+                    <div className="flex gap-2">
+                      {isTeacherOf(nextUp) && (
+                        <button
+                          onClick={() => handleComplete(nextUp._id)}
+                          disabled={actingId === nextUp._id}
+                          className="flex-1 text-sm font-medium text-green-700 border border-green-600 rounded-lg py-2 hover:bg-green-50 transition-colors disabled:opacity-50"
+                        >
+                          Mark Complete
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleCancel(nextUp._id)}
+                        disabled={actingId === nextUp._id}
+                        className="flex-1 text-sm font-medium text-red-600 border border-red-600 rounded-lg py-2 hover:bg-red-50 transition-colors disabled:opacity-50"
+                      >
+                        {actingId === nextUp._id ? "..." : "Cancel"}
                       </button>
                     </div>
                   </div>
@@ -331,12 +353,20 @@ const MySessions: FC = () => {
 
                         <div className="flex gap-2 mt-1">
                           <Link
+                            to={`/session-call/${session._id}`}
+                            className="flex-1 text-center text-xs font-medium text-white bg-primary rounded-md py-1.5 hover:bg-primary-dark transition-colors"
+                          >
+                            Join Call
+                          </Link>
+                          <Link
                             to={`/messages/${otherPerson._id}`}
                             state={{ name: otherPerson.name, profileImage: otherPerson.profileImage }}
                             className="flex-1 text-center text-xs font-medium text-primary border border-primary rounded-md py-1.5 hover:bg-primary-soft transition-colors"
                           >
                             Message
                           </Link>
+                        </div>
+                        <div className="flex gap-2">
                           {isTeacher && (
                             <button
                               onClick={() => handleComplete(session._id)}
@@ -449,8 +479,14 @@ const MySessions: FC = () => {
                     </span>
                   </div>
                   <div className="text-sm text-ink/70">
-                    {formatDate(session.scheduledAt)} · {formatTime(session.scheduledAt)}
+                    Originally scheduled: {formatDate(session.scheduledAt)} · {formatTime(session.scheduledAt)}
                   </div>
+                  {session.resolvedAt && (
+                    <div className="text-xs text-muted">
+                      {session.status === "completed" ? "Completed" : "Cancelled"} on{" "}
+                      {formatDate(session.resolvedAt)} · {formatTime(session.resolvedAt)}
+                    </div>
+                  )}
                 </div>
               );
             })}

@@ -21,6 +21,7 @@ export interface Session {
   scheduledAt: string;
   notes: string;
   status: SessionStatus;
+  resolvedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

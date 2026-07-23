@@ -13,6 +13,7 @@ import Messages from "./pages/Messages";
 import MySessions from "./pages/MySessions";
 import BookSession from "./pages/BookSession";
 import VideoCall from "./pages/VideoCall";
+import DirectCall from "./pages/DirectCall";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BrowseSkills from "./pages/browseSkills";
@@ -109,6 +110,14 @@ const App: FC = () => {
         element={
           <ProtectedRoute>
             <VideoCall />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/call/:userId"
+        element={
+          <ProtectedRoute>
+            <DirectCall />
           </ProtectedRoute>
         }
       />

@@ -4,18 +4,15 @@ import {
   sendMessage,
   getConversation,
   getConversations,
+  logCall,
 } from "../controllers/messageController";
 
 const router = express.Router();
-console.log("messageRoutes.ts file loaded, router created");
-
-router.get("/", protect, getConversations);
-
-router.get("/:userId", (req, res, next) => {
-  console.log("Route reached:", req.params.userId);
-  next();
-}, protect, getConversation);
+console.log("🔍 DEBUG: messageRoutes.ts loaded — call-log route being registered now");
 
 router.post("/", protect, sendMessage);
+router.post("/call-log", protect, logCall);
+router.get("/", protect, getConversations);
+router.get("/:userId", protect, getConversation);
 
 export default router;

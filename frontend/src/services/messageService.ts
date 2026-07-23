@@ -4,13 +4,18 @@ import {
   SendMessageInput,
   SendMessageResponse,
   ConversationSummary,
-} from "../types/Message";
+  LogCallInput,
+} from "../types/message";
 
 export const sendMessage = async (
   data: SendMessageInput
 ): Promise<SendMessageResponse> => {
   const response = await api.post<SendMessageResponse>("/messages", data);
   return response.data;
+};
+
+export const logCall = async (data: LogCallInput): Promise<void> => {
+  await api.post("/messages/call-log", data);
 };
 
 export const getConversation = async (userId: string): Promise<Message[]> => {

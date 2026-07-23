@@ -5,6 +5,9 @@ export interface IMessage extends Document {
   receiver: mongoose.Types.ObjectId;
   content: string;
   read: boolean;
+  type: "text" | "call";
+  callType: "video" | "audio" | null;
+  callDurationSeconds: number | null;
 }
 
 const messageSchema = new Schema(
@@ -27,6 +30,20 @@ const messageSchema = new Schema(
     read: {
       type: Boolean,
       default: false,
+    },
+    type: {
+      type: String,
+      enum: ["text", "call"],
+      default: "text",
+    },
+    callType: {
+      type: String,
+      enum: ["video", "audio", null],
+      default: null,
+    },
+    callDurationSeconds: {
+      type: Number,
+      default: null,
     },
   },
   {

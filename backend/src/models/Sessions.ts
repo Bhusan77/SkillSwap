@@ -7,6 +7,7 @@ export interface ISession extends Document {
   scheduledAt: Date;
   notes: string;
   status: "upcoming" | "completed" | "cancelled";
+  resolvedAt: Date | null;
 }
 
 const sessionSchema = new Schema(
@@ -39,6 +40,12 @@ const sessionSchema = new Schema(
       type: String,
       enum: ["upcoming", "completed", "cancelled"],
       default: "upcoming",
+    },
+    // Set the moment a session is cancelled or marked complete —
+    // distinct from scheduledAt, which is the originally booked time.
+    resolvedAt: {
+      type: Date,
+      default: null,
     },
   },
   {
